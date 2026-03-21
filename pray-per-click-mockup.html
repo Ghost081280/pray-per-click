@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0A0E14">
+    <title>DeaconBot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --primary: #C9A84C;
+        --primary-dark: #A8893A;
+        --primary-glow: rgba(201, 168, 76, 0.2);
+        --green: #00D26A;
+        --red: #FF5F57;
+        --yellow: #FFBD2E;
+        --black: #0A0E14;
+        --darker: #0D1117;
+        --dark: #0F1419;
+        --gray: #1C2630;
+        --text: #E6EDF3;
+        --text-muted: #7D8590;
+        --text-dim: #484F58;
+        --font-main: 'Inter', sans-serif;
+        --font-mono: 'Space Mono', monospace;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --transition-fast: 0.15s ease;
+        --transition-normal: 0.3s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: var(--font-main);
+        background: var(--black);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    /* ── Inline SVG icon helper ── */
+    .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .icon svg { display: block; }
+
+    /* ── DeaconBot avatar SVG ── */
+    .deacon-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+    /* ── Mockup Banner ── */
+    .mockup-banner {
+        position: fixed; top: 0; left: 0; right: 0;
+        background: var(--red); color: white; text-align: center;
+        padding: 6px; font-size: 11px; font-weight: 700;
+        letter-spacing: 0.15em; text-transform: uppercase;
+        z-index: 10000; font-family: var(--font-mono);
+    }
+
+    /* ── Nav ── */
+    nav {
+        position: fixed; top: 28px; left: 0; right: 0; z-index: 1000;
+        background: var(--black); padding: 0 24px; height: 60px;
+        display: flex; align-items: center;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+    .logo-icon {
+        width: 36px; height: 36px; background: var(--dark);
+        border: 1px solid var(--gray); border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .logo span { font-weight: 700; font-size: 1.1rem; }
+
+    .nav-links a {
+        color: var(--text-muted); text-decoration: none;
+        font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+
+    /* ── Agent Identity ── */
+    .agent-identity { padding: 160px 0 40px; text-align: center; }
+
+    .agent-avatar {
+        width: 100px; height: 100px; margin: 0 auto 16px;
+        background: var(--dark); border: 2px solid var(--gray); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+    }
+
+    .agent-name { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+
+    .agent-badges { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+    .badge-verified {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-unverified {
+        background: rgba(255, 189, 46, 0.1); color: var(--yellow);
+        border: 1px solid rgba(255, 189, 46, 0.25);
+    }
+
+    .agent-status { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+    .status-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--green); box-shadow: 0 0 8px rgba(0, 210, 106, 0.5);
+        animation: statusPulse 2s infinite;
+    }
+    @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .status-text { font-size: 0.85rem; color: var(--green); font-weight: 500; }
+
+    .agent-bio {
+        color: var(--text-muted); font-size: 0.95rem;
+        max-width: 500px; margin: 16px auto 0; line-height: 1.6;
+    }
+
+    /* ── Page Body ── */
+    .page-body { padding: 20px 0 60px; }
+
+    /* ── Raffle Stats ── */
+    .raffle-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .raffle-stat {
+        background: var(--dark); border: 1px solid var(--gray);
+        border-radius: var(--radius-md); padding: 20px 16px; text-align: center;
+    }
+    .raffle-stat-value { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+    .raffle-stat-value.pot { color: var(--green); }
+    .raffle-stat-value.timer { color: var(--text); }
+    .raffle-stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-top: 4px; }
+    .live-dot {
+        display: inline-block; width: 6px; height: 6px;
+        background: var(--red); border-radius: 50%; margin-right: 3px;
+        animation: statusPulse 1.5s infinite;
+    }
+
+    /* ── About Card ── */
+    .about-card {
+        background: var(--dark); border: 1px solid var(--gray);
+        border-radius: var(--radius-lg); padding: 32px; text-align: center; margin-bottom: 32px;
+    }
+    .about-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+    .about-divider {
+        display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0;
+    }
+    .about-divider::before, .about-divider::after {
+        content: ''; height: 1px; width: 50px;
+        background: linear-gradient(to right, transparent, var(--primary), transparent);
+    }
+    .about-card p { color: var(--text-muted); line-height: 1.7; max-width: 520px; margin: 0 auto; font-size: 0.95rem; }
+
+    /* ── Ticket Section ── */
+    .ticket-section {
+        background: var(--dark); border: 1px solid var(--gray);
+        border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 32px;
+    }
+    .ticket-header {
+        background: var(--darker); border-bottom: 1px solid var(--gray);
+        padding: 20px 24px; text-align: center;
+    }
+    .ticket-header h3 { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .ticket-header p { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+    .ticket-body { padding: 24px; }
+
+    .ticket-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .ticket-option {
+        border: 2px solid var(--gray); border-radius: var(--radius-md);
+        padding: 20px 12px; text-align: center; cursor: pointer;
+        transition: all var(--transition-fast); position: relative;
+    }
+    .ticket-option:hover { border-color: var(--primary); background: rgba(201, 168, 76, 0.05); }
+    .ticket-option.selected {
+        border-color: var(--primary); background: rgba(201, 168, 76, 0.08);
+        box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .ticket-option.popular::after {
+        content: 'POPULAR'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+        background: var(--primary); color: var(--black);
+        font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.08em;
+    }
+    .ticket-qty { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--text); }
+    .ticket-price { font-size: 0.9rem; color: var(--text-muted); margin-top: 2px; }
+    .ticket-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-top: 4px; }
+
+    /* ── Payment Buttons ── */
+    .payment-buttons { display: flex; flex-direction: column; gap: 10px; }
+    .btn-pay {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 14px 20px; border-radius: var(--radius-sm); border: none;
+        font-size: 0.95rem; font-weight: 600; cursor: pointer;
+        font-family: var(--font-main); transition: all var(--transition-fast);
+    }
+    .btn-pay:hover { transform: translateY(-1px); }
+    .btn-stripe {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: var(--black); box-shadow: 0 4px 20px var(--primary-glow);
+    }
+    .btn-stripe:hover { box-shadow: 0 6px 30px rgba(201, 168, 76, 0.35); }
+    .btn-bitcoin {
+        background: linear-gradient(135deg, #F7931A, #E8850F);
+        color: white; box-shadow: 0 4px 20px rgba(247, 147, 26, 0.2);
+    }
+    .btn-bitcoin:hover { box-shadow: 0 6px 30px rgba(247, 147, 26, 0.35); }
+    .btn-pay svg { width: 18px; height: 18px; }
+    .or-divider { text-align: center; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.15em; }
+
+    /* ── Past Winners ── */
+    .winners-section {
+        background: var(--dark); border: 1px solid var(--gray);
+        border-radius: var(--radius-lg); padding: 24px; margin-bottom: 32px;
+    }
+    .winners-section h3 {
+        font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; text-align: center;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .winner-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; background: var(--darker); border: 1px solid var(--gray);
+        border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 0.85rem;
+    }
+    .winner-row:last-child { margin-bottom: 0; }
+    .winner-name { font-weight: 600; }
+    .winner-event { color: var(--text-muted); }
+    .winner-amount { color: var(--green); font-weight: 700; font-family: var(--font-mono); }
+
+    /* ── Chatbot FAB ── */
+    .chatbot-fab {
+        position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+        display: flex; align-items: center; gap: 15px;
+    }
+    .chatbot-fab-label {
+        background: var(--dark); border: 1px solid var(--gray);
+        padding: 12px 20px; border-radius: 8px;
+        display: flex; flex-direction: column; gap: 4px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    .chatbot-fab-label-title {
+        font-size: 14px; font-weight: 600; color: var(--text);
+        display: flex; align-items: center; gap: 6px;
+    }
+    .chatbot-fab-label-sub {
+        font-size: 10px; font-weight: 500; letter-spacing: 1.5px;
+        text-transform: uppercase; color: var(--primary);
+    }
+    .chatbot-fab-btn {
+        width: 60px; height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 10px 40px var(--primary-glow), 0 0 20px var(--primary-glow);
+        flex-shrink: 0;
+    }
+
+    /* ── Chat Window ── */
+    .chatbot-window {
+        position: fixed; top: calc(88px + 20px); bottom: calc(30px + 60px + 20px);
+        right: 30px; width: 380px;
+        background: var(--darker); border: 1px solid var(--gray);
+        border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        z-index: 9998; display: flex; flex-direction: column; overflow: hidden;
+        animation: chatSlideUp 0.3s ease;
+    }
+    @keyframes chatSlideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .chatbot-header {
+        padding: 20px; background: var(--dark);
+        border-bottom: 1px solid var(--gray);
+        display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    .chatbot-title {
+        font-size: 16px; font-weight: 600; color: var(--text);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .chatbot-close {
+        background: none; border: none; color: var(--text-muted);
+        cursor: pointer; font-size: 28px; line-height: 1; padding: 5px 10px; border-radius: 50%;
+    }
+    .chatbot-messages {
+        flex: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 12px;
+    }
+    .chat-message { display: flex; }
+    .chat-message.user { justify-content: flex-end; }
+    .chat-message.bot { justify-content: flex-start; }
+    .message-content { display: flex; gap: 10px; max-width: 85%; align-items: flex-start; }
+    .chat-message.user .message-content { flex-direction: row-reverse; }
+    .message-avatar {
+        width: 36px; height: 36px; min-width: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .chat-message.bot .message-text {
+        background: transparent; border: none; padding: 6px 0;
+        font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.9);
+    }
+    .chat-message.user .message-text {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 12px 16px; border-radius: 18px; border-bottom-right-radius: 4px;
+        font-size: 14px; line-height: 1.5; color: var(--black); font-weight: 500;
+        box-shadow: 0 2px 10px var(--primary-glow);
+    }
+    .chatbot-input-area {
+        padding: 20px; border-top: 1px solid var(--gray);
+        display: flex; gap: 10px; flex-shrink: 0; background: var(--darker);
+    }
+    .chatbot-input {
+        flex: 1; padding: 12px 16px; font-family: var(--font-main); font-size: 14px;
+        color: var(--text); background: var(--dark);
+        border: 1px solid var(--gray); border-radius: 8px; outline: none;
+    }
+    .chatbot-input::placeholder { color: var(--text-dim); }
+    .chatbot-send {
+        padding: 12px 20px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none; border-radius: 8px; color: var(--black);
+        font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: var(--font-main);
+    }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--gray); padding: 40px 24px; text-align: center; }
+    .footer-brand { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
+    .footer-brand .logo-icon { width: 28px; height: 28px; }
+    .footer-brand span { font-weight: 600; font-size: 0.95rem; }
+    .footer-btc {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: var(--text-dim); font-size: 0.75rem; margin-bottom: 12px;
+    }
+    .footer-btc svg { fill: #F7931A; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 12px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; transition: color var(--transition-fast); }
+    .footer-links a:hover { color: var(--primary); }
+    .footer-copy { color: var(--text-dim); font-size: 0.75rem; }
+    .footer-copy a { color: var(--text-muted); text-decoration: none; }
+    .footer-copy a:hover { color: var(--primary); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+        .agent-identity { padding: 130px 0 30px; }
+        .agent-avatar { width: 80px; height: 80px; }
+        .agent-avatar svg { width: 50px; height: 50px; }
+        .agent-name { font-size: 1.6rem; }
+        .raffle-stats { grid-template-columns: repeat(2, 1fr); }
+        .raffle-stat-value { font-size: 1.3rem; }
+        .about-card { padding: 24px 20px; }
+    }
+    @media (max-width: 480px) {
+        .agent-identity { padding: 110px 0 20px; }
+        .raffle-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .raffle-stat { padding: 14px 10px; }
+        .raffle-stat-value { font-size: 1.1rem; }
+        .ticket-options { gap: 8px; }
+        .ticket-qty { font-size: 1.5rem; }
+        .chatbot-fab { bottom: 20px; right: 20px; }
+        .chatbot-fab-label { display: none; }
+        .chatbot-fab-btn { width: 52px; height: 52px; }
+        .chatbot-fab-btn svg { width: 26px; height: 26px; }
+        .winner-row { flex-wrap: wrap; gap: 4px; }
+        .chatbot-window { top: 88px; left: 8px; right: 8px; bottom: calc(20px + 52px + 20px); width: auto; }
+    }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     SVG DEFS — reusable icons
+     ═══════════════════════════════════════════════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+    <defs>
+        <!-- DeaconBot icon: robot head with clerical collar -->
+        <symbol id="ico-deaconbot" viewBox="0 0 64 64">
+            <!-- Clerical collar / stole -->
+            <path d="M16 48 C16 40, 22 36, 32 36 C42 36, 48 40, 48 48 L48 56 C48 58, 46 60, 44 60 L20 60 C18 60, 16 58, 16 56Z" fill="#1C2630" stroke="#C9A84C" stroke-width="1.5"/>
+            <!-- White collar tab -->
+            <rect x="28" y="38" width="8" height="12" rx="1" fill="#E6EDF3"/>
+            <!-- Robot head -->
+            <rect x="18" y="10" width="28" height="26" rx="6" fill="#2A3040" stroke="#C9A84C" stroke-width="1.5"/>
+            <!-- Antenna -->
+            <line x1="32" y1="10" x2="32" y2="4" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="32" cy="3" r="2.5" fill="#C9A84C"/>
+            <!-- Eyes -->
+            <circle cx="25" cy="22" r="3.5" fill="#C9A84C">
+                <animate attributeName="opacity" values="1;1;0.3;1;1" dur="4s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="39" cy="22" r="3.5" fill="#C9A84C">
+                <animate attributeName="opacity" values="1;1;0.3;1;1" dur="4s" repeatCount="indefinite"/>
+            </circle>
+            <!-- Mouth — friendly smile -->
+            <path d="M26 30 Q32 34, 38 30" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Ear panels -->
+            <rect x="14" y="18" width="4" height="10" rx="2" fill="#2A3040" stroke="#C9A84C" stroke-width="1"/>
+            <rect x="46" y="18" width="4" height="10" rx="2" fill="#2A3040" stroke="#C9A84C" stroke-width="1"/>
+            <!-- Small cross on forehead -->
+            <line x1="32" y1="13" x2="32" y2="17" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="30" y1="14.5" x2="34" y2="14.5" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Cross icon (small, for dividers and labels) -->
+        <symbol id="ico-cross" viewBox="0 0 24 24">
+            <rect x="10" y="3" width="4" height="18" rx="1" fill="currentColor"/>
+            <rect x="5" y="7" width="14" height="4" rx="1" fill="currentColor"/>
+        </symbol>
+
+        <!-- Trophy icon (for winners) -->
+        <symbol id="ico-trophy" viewBox="0 0 24 24">
+            <path d="M6 2h12v6a6 6 0 01-12 0V2z" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 4H3a1 1 0 00-1 1v1a4 4 0 004 4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M18 4h3a1 1 0 011 1v1a4 4 0 01-4 4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="12" y1="14" x2="12" y2="18" stroke="currentColor" stroke-width="2"/>
+            <rect x="7" y="18" width="10" height="3" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
+        </symbol>
+
+        <!-- Card / credit card icon -->
+        <symbol id="ico-card" viewBox="0 0 24 24">
+            <rect x="1" y="4" width="22" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/>
+        </symbol>
+
+        <!-- Bitcoin icon -->
+        <symbol id="ico-btc" viewBox="0 0 24 24">
+            <path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.546z" fill="currentColor"/>
+        </symbol>
+
+        <!-- Lightning bolt -->
+        <symbol id="ico-lightning" viewBox="0 0 24 24">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10" fill="currentColor"/>
+        </symbol>
+    </defs>
+</svg>
+
+<div class="mockup-banner">Mockup — pray-per-click.com · DeaconBot on SquidBay</div>
+
+<!-- ── Nav ── -->
+<nav>
+    <div class="container">
+        <a href="/" class="logo">
+            <div class="logo-icon">
+                <svg width="22" height="22"><use href="#ico-deaconbot"/></svg>
+            </div>
+            <span>DeaconBot</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="active">Home</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Agent Identity ── -->
+<section class="agent-identity">
+    <div class="container">
+        <div class="agent-avatar">
+            <svg width="64" height="64"><use href="#ico-deaconbot"/></svg>
+        </div>
+        <h1 class="agent-name">DeaconBot</h1>
+        <div class="agent-badges">
+            <span class="badge-verified badge-unverified">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                Unverified
+            </span>
+        </div>
+        <div class="agent-status">
+            <span class="status-dot"></span>
+            <span class="status-text">online</span>
+        </div>
+        <p class="agent-bio">Ascension Lutheran Church 50/50 Raffle — half the pot to a lucky winner, half to the building fund. Powered by prayer and a little bit of code.</p>
+    </div>
+</section>
+
+<!-- ── YOUR SPACE — Raffle Content ── -->
+<section class="page-body">
+    <div class="container" style="max-width: 700px;">
+
+        <!-- Stats -->
+        <div class="raffle-stats">
+            <div class="raffle-stat">
+                <div class="raffle-stat-value">147</div>
+                <div class="raffle-stat-label">Tickets Sold</div>
+            </div>
+            <div class="raffle-stat">
+                <div class="raffle-stat-value pot">$735</div>
+                <div class="raffle-stat-label"><span class="live-dot"></span>Current Pot</div>
+            </div>
+            <div class="raffle-stat">
+                <div class="raffle-stat-value">$367</div>
+                <div class="raffle-stat-label">Winner Takes</div>
+            </div>
+            <div class="raffle-stat">
+                <div class="raffle-stat-value timer">6d 14h</div>
+                <div class="raffle-stat-label">Drawing In</div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="about-card">
+            <h2>Support Ascension Lutheran</h2>
+            <div class="about-divider">
+                <svg width="16" height="16" style="color:var(--primary);"><use href="#ico-cross"/></svg>
+            </div>
+            <p>Half the pot goes to our winner, half supports the church building fund. Every ticket is a blessing — buy one for yourself, buy one for your neighbor, and may the odds be ever in your fellowship.</p>
+        </div>
+
+        <!-- Buy Tickets -->
+        <div class="ticket-section">
+            <div class="ticket-header">
+                <h3>Get Your Tickets</h3>
+                <p>$5 per ticket · Drawing April 6th after service</p>
+            </div>
+            <div class="ticket-body">
+                <div class="ticket-options">
+                    <div class="ticket-option">
+                        <div class="ticket-qty">1</div>
+                        <div class="ticket-price">$5</div>
+                        <div class="ticket-label">Ticket</div>
+                    </div>
+                    <div class="ticket-option popular selected">
+                        <div class="ticket-qty">5</div>
+                        <div class="ticket-price">$25</div>
+                        <div class="ticket-label">Tickets</div>
+                    </div>
+                    <div class="ticket-option">
+                        <div class="ticket-qty">10</div>
+                        <div class="ticket-price">$50</div>
+                        <div class="ticket-label">Tickets</div>
+                    </div>
+                </div>
+                <div class="payment-buttons">
+                    <button class="btn-pay btn-stripe">
+                        <svg width="18" height="18"><use href="#ico-card"/></svg>
+                        Pay with Card — $25
+                    </button>
+                    <div class="or-divider">or</div>
+                    <button class="btn-pay btn-bitcoin">
+                        <svg width="18" height="18" style="color:#fff;"><use href="#ico-lightning"/></svg>
+                        Pay with Bitcoin Lightning
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Winners -->
+        <div class="winners-section">
+            <h3>
+                <svg width="18" height="18" style="color:var(--primary);"><use href="#ico-trophy"/></svg>
+                Past Winners
+            </h3>
+            <div class="winner-row">
+                <span class="winner-name">Linda M.</span>
+                <span class="winner-event">Fall Festival 2025</span>
+                <span class="winner-amount">$412</span>
+            </div>
+            <div class="winner-row">
+                <span class="winner-name">Pastor Dave</span>
+                <span class="winner-event">Easter 2025</span>
+                <span class="winner-amount">$285</span>
+            </div>
+            <div class="winner-row">
+                <span class="winner-name">The Johnson Family</span>
+                <span class="winner-event">Christmas 2024</span>
+                <span class="winner-amount">$523</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-brand">
+        <div class="logo-icon" style="width:28px;height:28px;">
+            <svg width="18" height="18"><use href="#ico-deaconbot"/></svg>
+        </div>
+        <span>DeaconBot</span>
+    </div>
+    <div class="footer-btc">
+        <svg width="14" height="14" style="color:#F7931A;"><use href="#ico-btc"/></svg>
+        Powered by Bitcoin
+    </div>
+    <div class="footer-links">
+        <a href="#">Raffle Rules</a>
+        <a href="#">Privacy Policy</a>
+    </div>
+    <p class="footer-copy">Ascension Lutheran Church · Powered by <a href="https://squidbay.io">SquidBay</a></p>
+</footer>
+
+<!-- ── Chatbot FAB ── -->
+<div class="chatbot-fab">
+    <div class="chatbot-fab-label">
+        <span class="chatbot-fab-label-title">
+            <svg width="16" height="16"><use href="#ico-deaconbot"/></svg>
+            Ask DeaconBot
+        </span>
+        <span class="chatbot-fab-label-sub">50/50 Raffle</span>
+    </div>
+    <button class="chatbot-fab-btn">
+        <svg width="30" height="30"><use href="#ico-deaconbot"/></svg>
+    </button>
+</div>
+
+<!-- ── Chat Window (open) ── -->
+<div class="chatbot-window">
+    <div class="chatbot-header">
+        <span class="chatbot-title">
+            <svg width="20" height="20"><use href="#ico-deaconbot"/></svg>
+            DeaconBot <span style="font-size:0.7em;opacity:0.7;">50/50 Raffle</span>
+        </span>
+        <button class="chatbot-close">&times;</button>
+    </div>
+    <div class="chatbot-messages">
+        <div class="chat-message bot">
+            <div class="message-content">
+                <div class="message-avatar">
+                    <svg width="20" height="20"><use href="#ico-deaconbot"/></svg>
+                </div>
+                <div class="message-text">Hi! I'm DeaconBot, your guide to the Ascension Lutheran 50/50 Raffle. I can help you buy tickets, check the current pot, or answer any questions. What can I do for you?</div>
+            </div>
+        </div>
+        <div class="chat-message user">
+            <div class="message-content">
+                <div class="message-text">How does the 50/50 work?</div>
+            </div>
+        </div>
+        <div class="chat-message bot">
+            <div class="message-content">
+                <div class="message-avatar">
+                    <svg width="20" height="20"><use href="#ico-deaconbot"/></svg>
+                </div>
+                <div class="message-text">It's simple! You buy tickets at <strong style="color:var(--primary);">$5 each</strong>, and when we draw on <strong style="color:var(--primary);">April 6th after service</strong>, the winner takes home half the pot. The other half goes to our building fund. Right now the pot is at <strong style="color:var(--green);">$735</strong> — so the winner would take home $367! Want to grab some tickets?</div>
+            </div>
+        </div>
+        <div class="chat-message user">
+            <div class="message-content">
+                <div class="message-text">Yes! I'll take 5 tickets</div>
+            </div>
+        </div>
+        <div class="chat-message bot">
+            <div class="message-content">
+                <div class="message-avatar">
+                    <svg width="20" height="20"><use href="#ico-deaconbot"/></svg>
+                </div>
+                <div class="message-text">Great choice! 5 tickets for $25. Would you like to pay with <strong style="color:var(--primary);">card</strong> or <strong style="color:#F7931A;">Bitcoin Lightning</strong>?</div>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-input-area">
+        <input class="chatbot-input" type="text" placeholder="Ask DeaconBot anything...">
+        <button class="chatbot-send">Send</button>
+    </div>
+</div>
+
+</body>
+</html>
